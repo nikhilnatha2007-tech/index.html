@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Password Generator — Case File</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1b1b1f;
+    --panel: #232327;
+    --card: #060614;
+    --border: #38383e;
+    --text: #e9e6de;
+    --muted: #8d8d93;
+    --accent: #1912ef;      /* stamp red */
+    --accent2: #c30f1e;     /* ribbon amber */
+    --ok: #6f8f6f;          /* ledger green */
+  }
+
+  * { box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at top left, rgba(230, 159, 44, 0.05), transparent 55%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding: 48px 16px;
+  }
+
+  .file{
+    width:100%;
+    max-width: 560px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+    overflow: hidden;
+  }
+
+  .file-tab{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 14px 20px;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .file-tab .label{
+    font-family: 'Special Elite', monospace;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+
+  .file-tab .ref{
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .body-pad{ padding: 24px 20px 28px; }
+
+  .field-row{ display:flex; gap:14px; margin-bottom:18px; }
+  .field-row.stack{ flex-direction:column; }
+
+  label.section-label{
+    display:block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  /* --- redacted password display --- */
+  .redaction{
+    position:relative;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 22px 16px;
+    display:flex;
+    flex-wrap:wrap;
+    gap: 4px;
+    justify-content:center;
+    align-items:center;
+    min-height: 34px;
+    font-size: 20px;
+    letter-spacing: 1px;
+  }
+  .redaction .placeholder{
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+  .char{
+    position:relative;
+    display:inline-block;
+    padding: 2px 3px;
+    background: #000;
+    border-radius: 1px;
+    color: transparent;
+    transition: color .05s linear;
+  }
+  .char.revealed{
+    background: transparent;
+    color: var(--accent2);
+    animation: liftBar .38s ease forwards;
+  }
+  @keyframes liftBar{
+    0%   { background:#000; color:transparent; }
+    45%  { background:#000; color:transparent; }
+    55%  { background:transparent; color: var(--accent2); }
+    100% { background:transparent; color: var(--accent2); }
+  }
+
+  .copy-row{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:8px;
+  }
+  .copy-btn{
+    background:none;
+    border:none;
+    color: var(--muted);
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .copy-btn:hover{ color: var(--text); }
+
+  /* --- controls --- */
+  .length-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom: 18px;
+  }
+  .length-row input[type=range]{
+    flex:1;
+    accent-color: var(--accent2);
+  }
+  .length-val{
+    font-weight:600;
+    min-width: 28px;
+    text-align:right;
+  }
+
+  .toggles{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .toggle{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 9px 10px;
+    font-size: 12px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .toggle input{ accent-color: var(--accent); width:14px; height:14px; }
+  .toggle.active{ border-color: var(--accent2); }
+
+  input[type=text]{
+    width:100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text);
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+  input[type=text]:focus, .toggle input:focus-visible, .generate:focus-visible, .copy-btn:focus-visible{
+    outline: 2px solid var(--accent2);
+    outline-offset: 2px;
+  }
+  input[type=text]::placeholder{ color: var(--muted); }
+
+  .generate{
+    width:100%;
+    margin-top: 22px;
+    background: var(--accent);
+    border: none;
+    color: #1b1b1f;
+    font-family:'Special Elite', monospace;
+    font-size: 16px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 13px;
+    border-radius: 2px;
+    cursor:pointer;
+  }
+  .generate:hover{ filter: brightness(1.08); }
+  .generate:active{ transform: translateY(1px); }
+
+  /* --- strength stamp --- */
+  .stamp-row{
+    margin-top: 22px;
+    display:flex;
+    justify-content:center;
+    min-height: 54px;
+    align-items:center;
+  }
+  .stamp{
+    display:inline-block;
+    border: 3px double currentColor;
+    padding: 6px 18px;
+    font-family: 'Special Elite', monospace;
+    font-size: 15px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transform: rotate(-5deg) scale(0.85);
+    opacity: 0;
+    mix-blend-mode: screen;
+  }
+  .stamp.show{
+    animation: stampDown .28s ease-out forwards;
+  }
+  @keyframes stampDown{
+    0%   { opacity:0; transform: rotate(-5deg) scale(1.6); }
+    60%  { opacity:1; transform: rotate(-5deg) scale(0.92); }
+    100% { opacity:1; transform: rotate(-5deg) scale(1); }
+  }
+
+  .footnote{
+    text-align:center;
+    color: var(--muted);
+    font-size: 10.5px;
+    margin-top: 14px;
+    letter-spacing: .5px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .char, .char.revealed, .stamp, .stamp.show{ animation: none !important; transition: none !important; }
+  }
+
+  @media (max-width: 420px){
+    .toggles{ grid-template-columns: repeat(2, 1fr); }
+    .redaction{ font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="file">
+  <div class="file-tab">
+    <span class="label">PASSWORD GENERATOR</span>
+    <span class="ref" id="fileRef">FILE NO. ------</span>
+  </div>
+
+  <div class="body-pad">
+
+    <label class="section-label">Generated password</label>
+    <div class="redaction" id="redaction">
+      <span class="placeholder">— nothing generated yet —</span>
+    </div>
+    <div class="copy-row">
+      <button class="copy-btn" id="copyBtn" style="visibility:hidden;">Copy</button>
+    </div>
+
+    <div style="height:22px;"></div>
+
+    <label class="section-label">Length</label>
+    <div class="length-row">
+      <input type="range" id="length" min="4" max="48" value="16">
+      <span class="length-val" id="lengthVal">16</span>
+    </div>
+
+    <label class="section-label">Include</label>
+    <div class="toggles">
+      <label class="toggle active" id="toggleUpper">
+        <input type="checkbox" id="useUpper" checked> Uppercase
+      </label>
+      <label class="toggle active" id="toggleDigits">
+        <input type="checkbox" id="useDigits" checked> Numbers
+      </label>
+      <label class="toggle" id="toggleSymbols">
+        <input type="checkbox" id="useSymbols"> Symbols
+      </label>
+    </div>
+
+    <label class="section-label">Base it on a word (optional)</label>
+    <input type="text" id="baseName" placeholder="e.g. a name, project, pet — left blank for fully random">
+
+    <button class="generate" id="generateBtn">Generate</button>
+
+    <div class="stamp-row">
+      <div class="stamp" id="stamp"></div>
+    </div>
+
+    <div class="footnote">Everything runs in your browser — nothing is sent anywhere or stored.</div>
+  </div>
+</div>
+
+<script>
+const PUNCT = `@#*^&!`;
+const LOWER = "abcdefghijklmnopqrstuvwxyz";
+const UPPER = LOWER.toUpperCase();
+const DIGITS = "0123456789";
+
+function randChoice(str){
+  return str[Math.floor(Math.random() * str.length)];
+}
+
+function shuffle(arr){
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function generatePassword(length, useUpper, useDigits, useSymbols, baseName){
+  let pool = LOWER;
+  if(useUpper) pool += UPPER;
+  if(useDigits) pool += DIGITS;
+  if(useSymbols) pool += PUNCT;
+
+  if(baseName){
+    baseName = baseName.trim();
+    const namePart = baseName.split('').map(c =>
+      (useUpper && Math.random() < 0.3) ? c.toUpperCase() : c.toLowerCase()
+    ).join('');
+
+    const remaining = Math.max(length - namePart.length, 0);
+    let randomPart = '';
+    for(let i = 0; i < remaining; i++) randomPart += randChoice(pool);
+
+    let combined = shuffle((namePart + randomPart).split(''));
+    let password = combined.join('');
+    password = length <= password.length ? password.slice(0, length) : password;
+    return password;
+  } else {
+    let password = '';
+    for(let i = 0; i < length; i++) password += randChoice(pool);
+    return password;
+  }
+}
+
+function checkStrength(pw){
+  let score = 0;
+  if(pw.length >= 8) score++;
+  if(pw.length >= 12) score++;
+  if(/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+  if(/[0-9]/.test(pw)) score++;
+  if([...pw].some(c => PUNCT.includes(c))) score++;
+
+  if(score <= 1) return { label: "Very Weak", color: "var(--accent)" };
+  if(score === 2) return { label: "Weak", color: "var(--accent)" };
+  if(score === 3) return { label: "Medium", color: "var(--accent2)" };
+  if(score === 4) return { label: "Strong", color: "var(--ok)" };
+  return { label: "Very Strong", color: "var(--ok)" };
+}
+
+const lengthInput = document.getElementById('length');
+const lengthVal = document.getElementById('lengthVal');
+lengthInput.addEventListener('input', () => lengthVal.textContent = lengthInput.value);
+
+function wireToggle(toggleId, checkboxId){
+  const toggle = document.getElementById(toggleId);
+  const checkbox = document.getElementById(checkboxId);
+  checkbox.addEventListener('change', () => {
+    toggle.classList.toggle('active', checkbox.checked);
+  });
+}
+wireToggle('toggleUpper', 'useUpper');
+wireToggle('toggleDigits', 'useDigits');
+wireToggle('toggleSymbols', 'useSymbols');
+
+document.getElementById('fileRef').textContent =
+  'FILE NO. ' + Math.floor(100000 + Math.random() * 900000);
+
+let currentPassword = '';
+
+document.getElementById('generateBtn').addEventListener('click', () => {
+  const length = parseInt(lengthInput.value, 10);
+  const useUpper = document.getElementById('useUpper').checked;
+  const useDigits = document.getElementById('useDigits').checked;
+  const useSymbols = document.getElementById('useSymbols').checked;
+  const baseName = document.getElementById('baseName').value;
+
+  const password = generatePassword(length, useUpper, useDigits, useSymbols, baseName || null);
+  currentPassword = password;
+
+  const redaction = document.getElementById('redaction');
+  redaction.innerHTML = '';
+  [...password].forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.className = 'char';
+    span.textContent = ch;
+    span.style.animationDelay = (i * 28) + 'ms';
+    redaction.appendChild(span);
+  });
+  requestAnimationFrame(() => {
+    redaction.querySelectorAll('.char').forEach(el => el.classList.add('revealed'));
+  });
+
+  document.getElementById('copyBtn').style.visibility = 'visible';
+
+  const { label, color } = checkStrength(password);
+  const stamp = document.getElementById('stamp');
+  stamp.classList.remove('show');
+  void stamp.offsetWidth; // restart animation
+  stamp.textContent = label;
+  stamp.style.color = color;
+  stamp.classList.add('show');
+});
+
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  if(!currentPassword) return;
+  try{
+    await navigator.clipboard.writeText(currentPassword);
+    const btn = document.getElementById('copyBtn');
+    const old = btn.textContent;
+    btn.textContent = 'Copied';
+    setTimeout(() => btn.textContent = old, 1200);
+  }catch(e){ /* clipboard unavailable, ignore */ }
+});
+</script>
+
+</body>
+</html>
